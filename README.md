@@ -2,6 +2,9 @@
 
 An interactive visualization demonstrating why Euler's number (e ≈ 2.71828) is the unique mathematical constant where an exponential function equals its own derivative.
 
+Launce this Demonstration from here:
+https://powellga.github.io/EulersNumberVisualization/
+
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6-yellow.svg)
 ![Canvas](https://img.shields.io/badge/HTML5-Canvas-orange.svg)
