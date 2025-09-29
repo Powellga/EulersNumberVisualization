@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>e^x Equals Its Own Derivative</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .slider-container {
+            margin: 20px 0;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+        .base-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .base-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .base-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        .base-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            display: block;
+            margin: 20px auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .legend-line {
+            width: 30px;
+            height: 3px;
+        }
+        .info-box {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .info-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        .info-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 1.4em;
+            font-weight: bold;
+        }
+        .explanation {
+            background: #f0f8ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        #tangentCheckbox {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Why e^x is Special: It Equals Its Own Derivative</h1>
+        <div class="subtitle">Explore how different exponential bases relate to their derivatives</div>
+        
+        <div class="controls">
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Base (a):</span>
+                    <span id="baseValue">2.718</span>
+                </div>
+                <input type="range" id="baseSlider" min="1.5" max="4" step="0.001" value="2.718">
+            </div>
+            <div class="base-buttons">
+                <button class="base-btn" onclick="setBase(2)">a = 2</button>
+                <button class="base-btn active" onclick="setBase(Math.E)">a = e (≈2.718)</button>
+                <button class="base-btn" onclick="setBase(3)">a = 3</button>
+                <button class="base-btn" onclick="setBase(4)">a = 4</button>
+            </div>
+            <div style="margin-top: 15px;">
+                <label>
+                    <input type="checkbox" id="tangentCheckbox" checked>
+                    Show tangent line at x = <span id="tangentX">0</span>
+                </label>
+            </div>
+        </div>
+
+        <canvas id="graph" width="800" height="500"></canvas>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-line" style="background: #2563eb;"></div>
+                <span>f(x) = a^x</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line" style="background: #dc2626;"></div>
+                <span>f'(x) = ln(a) · a^x</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-line" style="background: #10b981; border-style: dashed;"></div>
+                <span>Tangent line</span>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3 style="margin-top: 0;">Current Values at x = <span id="currentX">0</span></h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Function value</div>
+                    <div class="info-value" id="funcValue">1.00</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Derivative value</div>
+                    <div class="info-value" id="derivValue">1.00</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Ratio (derivative/function)</div>
+                    <div class="info-value" id="ratioValue">1.00</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h3 style="margin-top: 0;">Key Insight:</h3>
+            <p><strong>When a = e:</strong> The blue curve (e^x) and red curve (derivative) perfectly overlap! This means e^x equals its own derivative at every point.</p>
+            <p><strong>For other bases:</strong> The derivative is scaled by ln(a). When a < e, the derivative is smaller than the function. When a > e, the derivative is larger.</p>
+            <p><strong>Why this matters:</strong> This unique property makes e the natural choice for modeling growth processes where the rate of change is proportional to the current amount.</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const baseSlider = document.getElementById('baseSlider');
+        const baseValueDisplay = document.getElementById('baseValue');
+        const tangentCheckbox = document.getElementById('tangentCheckbox');
+        
+        let currentBase = Math.E;
+        let mouseX = 0;
+        let scale = 80;
+        let offsetX = 400;
+        let offsetY = 400;
+
+        function setBase(value) {
+            currentBase = value;
+            baseSlider.value = value;
+            baseValueDisplay.textContent = value.toFixed(3);
+            document.querySelectorAll('.base-btn').forEach(btn => btn.classList.remove('active'));
+            if (Math.abs(value - Math.E) < 0.01) {
+                document.querySelectorAll('.base-btn')[1].classList.add('active');
+            } else if (value === 2) {
+                document.querySelectorAll('.base-btn')[0].classList.add('active');
+            } else if (value === 3) {
+                document.querySelectorAll('.base-btn')[2].classList.add('active');
+            } else if (value === 4) {
+                document.querySelectorAll('.base-btn')[3].classList.add('active');
+            }
+            draw();
+        }
+
+        baseSlider.addEventListener('input', (e) => {
+            currentBase = parseFloat(e.target.value);
+            baseValueDisplay.textContent = currentBase.toFixed(3);
+            document.querySelectorAll('.base-btn').forEach(btn => btn.classList.remove('active'));
+            draw();
+        });
+
+        tangentCheckbox.addEventListener('change', draw);
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = (e.clientX - rect.left - offsetX) / scale;
+            draw();
+        });
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1;
+            
+            for (let i = -10; i <= 10; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, offsetY + i * scale);
+                ctx.lineTo(canvas.width, offsetY + i * scale);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(offsetX + i * scale, 0);
+                ctx.lineTo(offsetX + i * scale, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#374151';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, offsetY);
+            ctx.lineTo(canvas.width, offsetY);
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.moveTo(offsetX, 0);
+            ctx.lineTo(offsetX, canvas.height);
+            ctx.stroke();
+            
+            // Label axes
+            ctx.fillStyle = '#374151';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            
+            for (let i = -4; i <= 4; i++) {
+                if (i !== 0) {
+                    ctx.fillText(i, offsetX + i * scale, offsetY + 5);
+                }
+            }
+            
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            for (let i = -4; i <= 4; i++) {
+                if (i !== 0) {
+                    ctx.fillText(-i, offsetX + 5, offsetY + i * scale);
+                }
+            }
+            
+            // Draw function: a^x
+            ctx.strokeStyle = '#2563eb';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            let firstPoint = true;
+            
+            for (let px = 0; px < canvas.width; px++) {
+                const x = (px - offsetX) / scale;
+                const y = Math.pow(currentBase, x);
+                const py = offsetY - y * scale;
+                
+                if (py > -100 && py < canvas.height + 100) {
+                    if (firstPoint) {
+                        ctx.moveTo(px, py);
+                        firstPoint = false;
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+            }
+            ctx.stroke();
+            
+            // Draw derivative: ln(a) * a^x
+            ctx.strokeStyle = '#dc2626';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            firstPoint = true;
+            
+            const lnBase = Math.log(currentBase);
+            
+            for (let px = 0; px < canvas.width; px++) {
+                const x = (px - offsetX) / scale;
+                const y = lnBase * Math.pow(currentBase, x);
+                const py = offsetY - y * scale;
+                
+                if (py > -100 && py < canvas.height + 100) {
+                    if (firstPoint) {
+                        ctx.moveTo(px, py);
+                        firstPoint = false;
+                    } else {
+                        ctx.lineTo(px, py);
+                    }
+                }
+            }
+            ctx.stroke();
+            
+            // Draw tangent line and point
+            if (tangentCheckbox.checked) {
+                const tangentX = Math.max(-4, Math.min(4, mouseX));
+                const funcY = Math.pow(currentBase, tangentX);
+                const derivY = lnBase * Math.pow(currentBase, tangentX);
+                
+                // Draw tangent line
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                
+                const x1 = tangentX - 2;
+                const y1 = funcY + derivY * (x1 - tangentX);
+                const x2 = tangentX + 2;
+                const y2 = funcY + derivY * (x2 - tangentX);
+                
+                ctx.moveTo(offsetX + x1 * scale, offsetY - y1 * scale);
+                ctx.lineTo(offsetX + x2 * scale, offsetY - y2 * scale);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // Draw point
+                ctx.fillStyle = '#667eea';
+                ctx.beginPath();
+                ctx.arc(offsetX + tangentX * scale, offsetY - funcY * scale, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Update info display
+                document.getElementById('tangentX').textContent = tangentX.toFixed(2);
+                document.getElementById('currentX').textContent = tangentX.toFixed(2);
+                document.getElementById('funcValue').textContent = funcY.toFixed(3);
+                document.getElementById('derivValue').textContent = derivY.toFixed(3);
+                document.getElementById('ratioValue').textContent = lnBase.toFixed(3);
+            }
+            
+            // Add labels for special case when a = e
+            if (Math.abs(currentBase - Math.E) < 0.01) {
+                ctx.fillStyle = '#059669';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.fillText('Perfect overlap! f(x) = f\'(x)', 20, 30);
+            }
+        }
+
+        // Initial draw
+        draw();
+    </script>
+</body>
+</html>
